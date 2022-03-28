@@ -1,10 +1,9 @@
 import requests
 
-url = 'https://api.github.com'
 user_name = 'dmdudarev'
-token = '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'
-link_1 = f'{url}/users/{user_name}/repos'
-link_2 = f'{url}/user/repos?access_token={token}'
+token = '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'
+url_1 = f'https://api.github.com/users/{user_name}/repos'
+url_2 = 'https://api.github.com/user/repos'
 
 
 def repos_names_list(data):
@@ -12,8 +11,8 @@ def repos_names_list(data):
         print(f"repo_name: {item['name']} | private: {item['private']}")
 
 
-def request(link):
-    req = requests.get(link)
+def request(url, name, token):
+    req = requests.get(url, auth=(name, token))
     if req.ok:
         data = req.json()
         repos_names_list(data)
@@ -21,5 +20,5 @@ def request(link):
         print(f'error {req.status_code}')
 
 
-request(link_1)
-request(link_2)
+request(url_1, user_name, token)
+request(url_2, user_name, token)
