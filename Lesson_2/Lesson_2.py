@@ -9,7 +9,7 @@ import pprint as pprint
 def get_hh_compensations(item):
     # сбор данных о зарплате
     try:
-        vac_compensation = item.find('div', {'class': 'vacancy-serp-item__compensation'}).getText()
+        vac_compensation = item.find('div', {'class': 'bloko-header-section-3'}).getText()
     except:
         vac_compensation = None
     if vac_compensation != None:
@@ -57,12 +57,12 @@ def get_hh_data(vacancies):
 df = pd.DataFrame(columns=['vac_name', 'employer', 'location', 'min_compensation', 'max_compensation',
                            'currency', 'link', 'site_name'])
 
-user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) \
-Chrome/78.0.3904.97 Safari/537.36'
+user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)  \
+             Chrome/100.0.4896.60 Safari/537.36'
 headers = {'User-Agent': user_agent}
 hh = 'https://hh.ru'
 
-search_text = input('Что ищем? ')
+search_text = input('Введите вакансию для поиска: ')
 if search_text == '':
     search_text = 'Data scientist'
 
@@ -70,7 +70,7 @@ response = req.get(hh + f'/search/vacancy?text={search_text}', headers=headers)
 if response.ok:
     hh_parsed_html = bs(response.text, 'html.parser')
     try:
-        hh_vacancies_total = hh_parsed_html.find('div', {'class': 'breadcrumbs'}).next_sibling.getText()
+        hh_vacancies_total = hh_parsed_html.find('h1', {'class': 'bloko-header-section-3'}).getText()
     except:
         hh_vacancies_total = 0
     try:
@@ -81,7 +81,7 @@ else:
     print('error', response.status_code)
 
 print(f'на {hh} найдено {hh_vacancies_total}. всего страниц {hh_pages_total}')
-input_pages = input('Сколько страниц будем парсить? ')
+input_pages = input('Сколько страниц обработать? ')
 try:
     hh_pages = int(input_pages)
 except:
@@ -96,7 +96,7 @@ for page in range(hh_pages):
     response = req.get(hh + f'/search/vacancy?text={search_text}&page={page}', headers=headers)
     if response.status_code == 200:
         hh_parsed_html = bs(response.text, 'html.parser')
-        hh_vacancies_block = hh_parsed_html.find('div', {'class': 'vacancy-serp'})
+        hh_vacancies_block = hh_parsed_html.find('div', {'data-qa': 'vacancy-serp__results'})
         hh_vacancies = hh_vacancies_block.findChildren('div', {'class': 'vacancy-serp-item'}, recursive=False)
         get_hh_data(hh_vacancies)
     else:
@@ -104,6 +104,6 @@ for page in range(hh_pages):
         continue
     sleep(rndi(1, 5))
 if hh_err_log != {}:
-    print('не все прошло гладко - "номер страницы":"статус запроса"', hh_err_log)
+    print('при сборе данных произошли ошибки - "номер страницы":"статус запроса"', hh_err_log)
 
-pprint(df)
+print(df)
