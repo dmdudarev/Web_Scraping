@@ -3,13 +3,13 @@ import requests as req
 import pandas as pd
 from random import randint as rndi
 from time import sleep
-import pprint as pprint
+from pprint import pprint
 
 
 def get_hh_compensations(item):
     # сбор данных о зарплате
     try:
-        vac_compensation = item.find('div', {'class': 'bloko-header-section-3'}).getText()
+        vac_compensation = item.find('span', {'data-qa': 'vacancy-serp__vacancy-compensation'}).getText()
     except:
         vac_compensation = None
     if vac_compensation != None:
@@ -22,8 +22,8 @@ def get_hh_compensations(item):
             max_compensation = ''.join(vac_compensation[1:-1])
             min_compensation = None
         else:
-            min_compensation = vac_compensation[0].split('-')[0]
-            max_compensation = vac_compensation[0].split('-')[1]
+            min_compensation = vac_compensation[0]
+            max_compensation = vac_compensation[2]
     else:
         min_compensation, max_compensation, comp_curr = [None] * 3
     return min_compensation, max_compensation, comp_curr
@@ -46,16 +46,16 @@ def get_hh_data(vacancies):
         except:
             employer = None
         try:
-            location = item.find('span', {'data-qa': 'vacancy-serp__vacancy-address'}).getText()
+            location = item.find('div', {'data-qa': 'vacancy-serp__vacancy-address'}).getText()
         except:
             location = None
         min_compensation, max_compensation, comp_curr = get_hh_compensations(item)
         df.loc[len(df) + 1] = [vac_name, employer, location, min_compensation, max_compensation,
-                               comp_curr, vac_link, site_name]
+                               comp_curr, vac_link]
 
 
 df = pd.DataFrame(columns=['vac_name', 'employer', 'location', 'min_compensation', 'max_compensation',
-                           'currency', 'link', 'site_name'])
+                           'currency', 'link'])
 
 user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)  \
              Chrome/100.0.4896.60 Safari/537.36'
@@ -106,4 +106,4 @@ for page in range(hh_pages):
 if hh_err_log != {}:
     print('при сборе данных произошли ошибки - "номер страницы":"статус запроса"', hh_err_log)
 
-print(df)
+pprint(df)
