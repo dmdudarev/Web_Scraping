@@ -6,8 +6,20 @@
 
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
-
+from pymongo import MongoClient
 
 class JobparserPipeline:
+    def __init__(self):
+        client = MongoClient('localhost', 27017)
+        self.mongobase = client.vacancy_ls6
+
+
     def process_item(self, item, spider):
+        item['min_salary'], item['max_salary'], item['currency'] = self.process_salary(item['salary'])
+        del item['salary']
+        collection = self.mongobase[spider.name]
+        collection.insert_one(item)
         return item
+
+    def process_salary(self, salary):
+        return 1, 2, 3
