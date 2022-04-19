@@ -2,6 +2,7 @@ import scrapy
 from scrapy.http import HtmlResponse
 from jobparser.items import JobparserItem
 
+
 class SuperjobruSpider(scrapy.Spider):
     name = 'superjobru'
     allowed_domains = ['superjob.ru']

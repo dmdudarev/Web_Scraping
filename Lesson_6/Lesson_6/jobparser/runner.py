@@ -11,8 +11,9 @@ if __name__ == '__main__':
     settings = get_project_settings()
     runner = CrawlerRunner(settings)
     runner.crawl(HhruSpider)
-    runner2 = CrawlerRunner(settings)
-    runner2.crawl(SuperjobruSpider)
+    runner.crawl(SuperjobruSpider)
+
+    d = runner.join()
+    d.addBoth(lambda _: reactor.stop())
 
     reactor.run()
-    
