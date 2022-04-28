@@ -6,6 +6,7 @@ from pymongo import MongoClient
 from pymongo.errors import DuplicateKeyError
 from random import randint as rndi
 from time import sleep
+# import re
 
 client = MongoClient('127.0.0.1', 27017)
 db = client['vacancies']
@@ -25,6 +26,7 @@ def hash_id(doc):
     doc_input = str(doc).encode('utf-8')
 
     return md5(doc_input).hexdigest()
+
 
 def get_hh_compensations(item):
     # сбор данных о зарплате
@@ -47,6 +49,7 @@ def get_hh_compensations(item):
     else:
         min_compensation, max_compensation, comp_curr = [None] * 3
     return min_compensation, max_compensation, comp_curr
+
 
 def get_hh_data(vacancies):
     # сбор данных: название, ссылка и т.д.
@@ -71,23 +74,24 @@ def get_hh_data(vacancies):
         except:
             location = None
         min_compensation, max_compensation, comp_curr = get_hh_compensations(item)
-        print(vac_name, min_compensation, max_compensation, comp_curr)
-        # tdb = {}
-        # tdb['vac_name'] = vac_name
-        # tdb['employer'] = employer
-        # tdb['location'] = location
-        # tdb['vac_link'] = vac_link
-        # tdb['min_compensation'] = min_compensation
-        # tdb['max_compensation'] = max_compensation
-        # tdb['comp_curr'] = comp_curr
-        # _id = hash_id(tdb)
-        # tdb['_id'] = _id
-        #
-        # try:
-        #     collection.insert_one(tdb)
-        #     num_add += 1
-        # except DuplicateKeyError:
-        #     num_dupl += 1
+        # print(vac_name, min_compensation, max_compensation, comp_curr)
+        tdb = {}
+        tdb['vac_name'] = vac_name
+        tdb['employer'] = employer
+        tdb['location'] = location
+        tdb['vac_link'] = vac_link
+        tdb['min_compensation'] = min_compensation
+        tdb['max_compensation'] = max_compensation
+        tdb['comp_curr'] = comp_curr
+        _id = hash_id(tdb)
+        tdb['_id'] = _id
+
+        try:
+            collection.insert_one(tdb)
+            num_add += 1
+        except DuplicateKeyError:
+            num_dupl += 1
+    print(f"Добавлено: {num_add}; пропущено дубликатов: {num_dupl}")
 
 response = req.get(hh + f'/search/vacancy?text={search_text}', headers=headers)
 if response.ok:
@@ -128,3 +132,15 @@ for page in range(hh_pages):
     sleep(rndi(1, 5))
 if hh_err_log != {}:
     print('при сборе данных произошли ошибки - "номер страницы":"статус запроса"', hh_err_log)
+
+# Поиск вакансий с зарплатой, выше введенной
+search_compensation = float(input('Введите желаемую заработную плату: '))
+
+search_vacancies = {
+    '$or':
+        [{'min_compensation': {'$gt': search_compensation}},
+         {'max_compensation': {'$gt': search_compensation}}]
+}
+
+for v in collection.find(search_vacancies):
+    pprint(v)
