@@ -8,6 +8,7 @@
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
 BOT_NAME = 'castorama'
+IMAGES_STORE = 'photos'
 
 SPIDER_MODULES = ['castorama.spiders']
 NEWSPIDER_MODULE = 'castorama.spiders'
@@ -21,7 +22,7 @@ USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-CONCURRENT_REQUESTS = 16
+CONCURRENT_REQUESTS = 8
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
@@ -65,6 +66,7 @@ COOKIES_ENABLED = True
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
    'castorama.pipelines.CastoramaPipeline': 300,
+   'castorama.pipelines.CastoramaPhotosPipeline': 200
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
