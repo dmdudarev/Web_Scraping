@@ -1,10 +1,9 @@
 import scrapy
-from itemloaders.processors import MapCompose, TakeFirst, Compose
+from itemloaders.processors import MapCompose, TakeFirst
 
 def convert_price(value):
-    value = value.replace('\xa0', '')
     try:
-        value = float(value)
+        return float(value)
     except:
         return value
 

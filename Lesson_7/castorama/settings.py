@@ -12,6 +12,7 @@ IMAGES_STORE = 'photos'
 
 SPIDER_MODULES = ['castorama.spiders']
 NEWSPIDER_MODULE = 'castorama.spiders'
+
 LOG_ENABLED = True
 LOG_LEVEL = 'DEBUG'
 

@@ -1,6 +1,7 @@
 import scrapy
 from itemadapter import ItemAdapter
 from pymongo import MongoClient
+from pymongo.errors import DuplicateKeyError
 from hashlib import md5
 from scrapy.pipelines.images import ImagesPipeline
 
@@ -11,18 +12,16 @@ class CastoramaPipeline:
         self.mongobase = client.castorama_ls7
 
     def process_item(self, item, spider):
-        _id = hash_id(item)
+        _id = md5(str(item).encode('utf-8')).hexdigest()
         item['_id'] = _id
 
         collection = self.mongobase[spider.name]
-        collection.insert_one(item)
+        try:
+            collection.insert_one(item)
+        except DuplicateKeyError:
+            None
 
         return item
-
-    def hash_id(doc):
-        doc_input = str(doc).encode('utf-8')
-
-        return md5(doc_input).hexdigest()
 
 
 class CastoramaPhotosPipeline(ImagesPipeline):

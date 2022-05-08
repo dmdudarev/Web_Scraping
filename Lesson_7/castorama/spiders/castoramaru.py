@@ -14,20 +14,14 @@ class CastoramaruSpider(scrapy.Spider):
         if next_page:
             yield response.follow(next_page, callback=self.parse)
 
-        links = response.xpath("//a[@class='product-card__name ga-product-card-name']")
+        links = response.xpath("//a[contains(@class, 'product-card__name')]/@href")
         for link in links:
-            yield response.follow(link, callback=self.cactorama_parse())
+            yield response.follow(link, callback=self.castorama_parse)
 
-    def cactorama_parse(self, response: HtmlResponse):
-        loader = ItemLoader(item=CastoramaItem, response=response)
+    def castorama_parse(self, response: HtmlResponse):
+        loader = ItemLoader(item=CastoramaItem(), response=response)
         loader.add_xpath('name', "//h1[@class='product-essential__name hide-max-small']/text()")
-        loader.add_xpath('price', "//div[@class ='current-price']//text()")
-        loader.add_xpath('photos', "//img[contains(@class, 'top-slide__img swiper-lazy')]/@src")
+        loader.add_xpath('price', "//span[@itemprop='price']/@content")
+        loader.add_xpath('photos', "//li[contains(@class, 'top-slide')]//span/@content")
         loader.add_value('url', response.url)
         yield loader.load_item()
-
-        # name = response.xpath("//h1[@class='product-essential__name hide-max-small']/text()").get()
-        # photos = response.xpath("//img[contains(@class, 'top-slide__img swiper-lazy')]/@src").getall()
-        # price = response.xpath("//div[@class ='current-price']//text()").get()
-        # url = response.url
-        # yield CastoramaItem(name=name, price=price, photos=photos, url=url)
