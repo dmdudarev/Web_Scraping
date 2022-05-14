@@ -4,7 +4,8 @@ import scrapy
 from scrapy.http import HtmlResponse
 import re
 import json
-# from copy import deepcopy
+from copy import deepcopy
+from urllib.parse import urlencode
 
 class InstagramSpider(scrapy.Spider):
     name = 'instagram'
@@ -16,6 +17,7 @@ class InstagramSpider(scrapy.Spider):
     my_password = lines[1].rstrip()
     inst_login_link = 'https://www.instagram.com/accounts/login/ajax/'
     parse_users = ['sakhalinkendo', 'eugenesar']
+    follows = ['followers', 'following']
 
     def parse(self, response: HtmlResponse):
         csrf = self.fetch_csrf_token(response.text)
@@ -31,22 +33,36 @@ class InstagramSpider(scrapy.Spider):
         j_body = response.json()
         if j_body.get('authenticated'):
             for parse_user in self.parse_users:
-                yield response.follow(
-                    f'/{parse_user}',
-                    callback=self.user_data_parse,
-                    cb_kwargs={'username': parse_user}
-                )
+                for flw in self.follows:
+                    yield response.follow(
+                        f'/{parse_user}',
+                        callback=self.user_data_parse,
+                        cb_kwargs={'username': parse_user,
+                                   'flw': flw}
+                    )
 
-    def user_data_parse(self, response: HtmlResponse, username):
+    def user_data_parse(self, response: HtmlResponse, username, flw):
         user_id = self.fetch_user_id(response.text, username)
-        # variables = 12
-        url_followers = f'https://i.instagram.com/api/v1/friendships/{user_id}/followers/?count=12&max_id={variables}&search_surface=follow_list_page'
+        variables = {'search_surface': 'follow_list_page'}
+        url_followers = f'https://i.instagram.com/api/v1/friendships/{user_id}/{flw}/?count=12&{urlencode(variables)}'
         yield response.follow(url_followers,
                               callback=self.user_followers_parse,
                               cb_kwargs={'username': username,
-                                         'user_id': user_id})
+                                         'flw': flw,
+                                         'user_id': user_id,
+                                         'variables': deepcopy(variables)})
 
-    def user_followers_parse(self, response: HtmlResponse, username, user_id):
+    def user_followers_parse(self, response: HtmlResponse, username, flw, user_id, variables):
+        j_data = response.json()
+        if j_data.get('next_max_id'):
+            variables['next_max_id'] = j_data.get('next_max_id')
+            url_followers = f'https://i.instagram.com/api/v1/friendships/{user_id}/{flw}/?count=12&{urlencode(variables)}'
+            yield response.follow(url_followers,
+                                  callback=self.user_followers_parse,
+                                  cb_kwargs={'username': username,
+                                             'flw': flw,
+                                             'user_id': user_id,
+                                             'variables': deepcopy(variables)})
         print()
 
     def fetch_csrf_token(self, text):
