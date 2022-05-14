@@ -4,7 +4,7 @@ import scrapy
 from scrapy.http import HtmlResponse
 import re
 import json
-
+# from copy import deepcopy
 
 class InstagramSpider(scrapy.Spider):
     name = 'instagram'
@@ -39,10 +39,14 @@ class InstagramSpider(scrapy.Spider):
 
     def user_data_parse(self, response: HtmlResponse, username):
         user_id = self.fetch_user_id(response.text, username)
-        url_followers = f'https://i.instagram.com/api/v1/friendships/{user_id}/followers/?count=12&max_id={12}&search_surface=follow_list_page'
-        yield response.follow(url_followers, callback=self.user_followers_parse)
+        # variables = 12
+        url_followers = f'https://i.instagram.com/api/v1/friendships/{user_id}/followers/?count=12&max_id={variables}&search_surface=follow_list_page'
+        yield response.follow(url_followers,
+                              callback=self.user_followers_parse,
+                              cb_kwargs={'username': username,
+                                         'user_id': user_id})
 
-    def user_followers_parse(self, response: HtmlResponse):
+    def user_followers_parse(self, response: HtmlResponse, username, user_id):
         print()
 
     def fetch_csrf_token(self, text):
